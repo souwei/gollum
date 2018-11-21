@@ -19,12 +19,14 @@ $LOAD_PATH.unshift(dir)
 
 module Gollum
 end
+
 Gollum::GIT_ADAPTER = ENV['GIT_ADAPTER'] if ENV['GIT_ADAPTER']
+g = Git.open(ENV["wiki_repo"])
 
 ENV['RACK_ENV'] = 'test'
 require 'gollum'
 require 'gollum/app'
-
+require 'git'
 # Disable the metadata feature
 $METADATA = false
 
@@ -101,4 +103,5 @@ def commit_test_file(wiki, dir, filename, ext, content)
       committer.update_working_dir(dir, filename, ext)
     end
   committer.commit
+  g.push
 end

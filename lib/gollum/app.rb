@@ -10,7 +10,7 @@ require 'gollum'
 require 'gollum/views/layout'
 require 'gollum/views/editable'
 require 'gollum/views/has_page'
-
+require 'git'
 require File.expand_path '../helpers', __FILE__
 
 #required to upload bigger binary files
@@ -49,7 +49,7 @@ module Precious
   class App < Sinatra::Base
     register Mustache::Sinatra
     include Precious::Helpers
-
+    g = Git.open(ENV["wiki_repo"])
     dir     = File.dirname(File.expand_path(__FILE__))
 
     # Detect unsupported browsers.
@@ -215,6 +215,7 @@ module Precious
           committer.update_working_dir(dir, filename, format)
         end
         committer.commit
+        g.push
         redirect to(request.referer)
       rescue Gollum::DuplicatePageError => e
         @message = "Duplicate page: #{e.message}"
@@ -266,6 +267,7 @@ module Precious
         return
       end
       committer.commit
+      g.push
 
       wikip = wiki_page(rename)
       page  = wiki.paged(wikip.name, wikip.path, exact = true)
@@ -289,6 +291,7 @@ module Precious
       update_wiki_page(wiki, page.footer, params[:footer], commit) if params[:footer]
       update_wiki_page(wiki, page.sidebar, params[:sidebar], commit) if params[:sidebar]
       committer.commit
+      g.push
 
       redirect to("/#{page.escaped_url_path}") unless page.nil?
     end
